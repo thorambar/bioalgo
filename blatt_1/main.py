@@ -16,14 +16,14 @@ sequenceFile = "TIS-Ecoli.txt"
 # +++ USER CHANGEBLE +++++++++++++++++++++++++++++++++++++++++++++++++++++
 pwmLength = 30 		# length of the region that is subject of the PWM
 pwmStartPos = 100 	# not 101 since counting from 0 
-#probArr = [0.25, 0.25, 0.25, 0.25] # probability of A, C, G, T. Sum shall always be 1 (sum = 0, probability will be determined automatically)
-probArr = [0, 0, 0, 0]
+probArr = [0.25, 0.25, 0.25, 0.25] # probability of A, C, G, T. Sum shall always be 1 (sum = 0, probability will be determined automatically)
+#probArr = [0, 0, 0, 0]
 seqLength = 200 	# total length of sequence including linebreake 
 trainingLines_end = 722 # end number (inclusive) of the training set 
 testLines_start = 0		# start number (inclusive) of the test set 
 offsetToPos = 0			# number of chars that get included to the right of the PWM window
 testOffset = 0			# number of chars that get included to the right of the PWM window in the test code. testOffset hast to be at least <= offsetToPos
-scoreThreshold = 0.00001	# score (inclusive) with witch a candidate gets counted as a valid start codon 
+scoreThreshold = 3.2	# score (inclusive) with witch a candidate gets counted as a valid start codon 
 r = 1	# pseudo-count for PWM 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -34,7 +34,7 @@ if(sum(probArr) == 0):
 	nucleotideCnt = np.zeros((4))
 	for lineIdx, line in enumerate(file):
 		for charIdx, char in enumerate(line):
-			if(charIdx < 100 or charIdx > 102): # Way to exclude areas from background model, for ex. the real start codons 
+			if(charIdx < 100 or charIdx > 103): # Way to exclude areas from background model, for ex. the real start codons 
 				totalCharCnt += 1
 				nucleotideCnt[nucDict[char]] += 1
 	for i in range(0, 4):
