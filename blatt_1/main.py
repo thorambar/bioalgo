@@ -18,12 +18,12 @@ pwmLength = 30 		# length of the region that is subject of the PWM
 pwmStartPos = 100 	# not 101 since counting from 0 
 probArr = [0.25, 0.25, 0.25, 0.25] # probability of A, C, G, T. Sum shall always be 1 (sum = 0, probability will be determined automatically)
 #probArr = [0, 0, 0, 0]
-seqLength = 200 	# total length of sequence including linebreake 
-trainingLines_end = 722 # end number (inclusive) of the training set 
-testLines_start = 0		# start number (inclusive) of the test set 
+seqLength = 200 	# total length of sequence including line break 
+trainingLines_end = 399 # end number (inclusive) of the training set 
+testLines_start = 400		# start number (inclusive) of the test set 
 offsetToPos = 0			# number of chars that get included to the right of the PWM window
 testOffset = 0			# number of chars that get included to the right of the PWM window in the test code. testOffset hast to be at least <= offsetToPos
-scoreThreshold = 3.2	# score (inclusive) with witch a candidate gets counted as a valid start codon 
+scoreThreshold = 0.001	# score (inclusive) with witch a candidate gets counted as a valid start codon 
 r = 1	# pseudo-count for PWM 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
