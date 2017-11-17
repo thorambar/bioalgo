@@ -40,7 +40,7 @@ file.close()
 # ==== Calculate the PWM array with log2(freq/prob) =============
 for rowIdx, row in enumerate(freqArr):
 	for colIdx, cell in enumerate(row):
-		pwmArr[rowIdx][colIdx] = np.log2( (cell+1) / trainingLines_end / prob )
+		pwmArr[rowIdx][colIdx] = np.log2( (cell + r) / trainingLines_end / prob )
 
 print '=== PWM Codon Finder ============='
 print pwmArr
