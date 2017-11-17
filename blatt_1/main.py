@@ -6,6 +6,7 @@
 # Motives are ATG,GTG,TTG 
 # ------------------------------------------------------------------------
 import numpy as np
+import time
 
 
 # ==== constants ======================
@@ -17,6 +18,7 @@ prob = 0.25
 seqLength = 200
 exampleLines = 722
 offsetToPos = 0
+scoreThreshold = 3.0
 r = 1
 nucDict = {'A': 0, 'C': 1, 'G': 2, 'T': 3, '\n': -1}
 
@@ -37,24 +39,32 @@ file.close()
 # ==== Calculate the PWM array with log2(freq/prob) =============
 for rowIdx, row in enumerate(freqArr):
 	for colIdx, cell in enumerate(row):
-		pwmArr[rowIdx][colIdx] = np.log2( (cell+1) / exampleLines / prob ) # TODO: Divide by 0 encountered vielleicht nicht schlimm 
+		pwmArr[rowIdx][colIdx] = np.log2( (cell+1) / exampleLines / prob )
 
+print '=== PWM Codon Finder ============='
 print pwmArr
+print '----------------------------------'
 
 # ==== search for possible tart codons based on pwm
 file = open(sequenceFile)
-i = 0
+codonCandidateCnt = 0
+codonPwmCnt = 0
+codonPwmRealMatch = 0;
 for line in file:
-	for idx, char in enumerate(line):
-		if( idx > pwmLength and idx < seqLength):
-			tmpStr = line[idx - pwmLength : idx]
+	for i in range(29, 200-3): # only go until the last 3 for possible codon 
+		potantialCodon_str = line[i+1:i+4]
+		pwm_str = line[i-29: i+1]
+		if( potantialCodon_str in startCodons):
+			codonCandidateCnt += 1
 			score = 0
-			for charIdx, char in enumerate(tmpStr):
+			for charIdx, char in enumerate(pwm_str):
 				score += pwmArr[nucDict[char]][charIdx]
-			if(score > 3):
-				print idx
-			
+			if(score >= scoreThreshold):
+				codonPwmCnt += 1
+				if(i == 99): # count matches with known start codons at pos 101(in file)
+					codonPwmRealMatch += 1
 
+print 'Potential codons: ', codonCandidateCnt, 'pwmCodons: ', codonPwmCnt, 'Match with codon: ', codonPwmRealMatch
 
 
 
