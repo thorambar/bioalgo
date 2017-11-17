@@ -11,20 +11,37 @@ import time
 
 # ==== constants ======================
 nucDict = {'A': 0, 'C': 1, 'G': 2, 'T': 3, '\n': -1}
-startCodons	=['ATG', 'GTG', 'TTG']
+startCodons	= ['ATG', 'GTG', 'TTG']
 sequenceFile = "TIS-Ecoli.txt"
 # +++ USER CHANGEBLE +++++++++++++++++++++++++++++++++++++++++++++++++++++
 pwmLength = 30 		# length of the region that is subject of the PWM
 pwmStartPos = 100 	# not 101 since counting from 0 
-prob = 0.25 		# probability of the background model (used equal distribution)
+#probArr = [0.25, 0.25, 0.25, 0.25] # probability of A, C, G, T. Sum shall always be 1 (sum = 0, probability will be determined automatically)
+probArr = [0, 0, 0, 0]
 seqLength = 200 	# total length of sequence including linebreake 
 trainingLines_end = 722 # end number (inclusive) of the training set 
 testLines_start = 0		# start number (inclusive) of the test set 
-offsetToPos = 1			# number of chars that get included to the right of the PWM window
+offsetToPos = 0			# number of chars that get included to the right of the PWM window
 testOffset = 0			# number of chars that get included to the right of the PWM window in the test code. testOffset hast to be at least <= offsetToPos
-scoreThreshold = 3.2	# score (inclusive) with witch a candidate gets counted as a valid start codon 
+scoreThreshold = 0.00001	# score (inclusive) with witch a candidate gets counted as a valid start codon 
 r = 1	# pseudo-count for PWM 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+# ==== Calculate probability of background model ========================================
+if(sum(probArr) == 0):
+	file = open(sequenceFile)
+	totalCharCnt = 0
+	nucleotideCnt = np.zeros((4))
+	for lineIdx, line in enumerate(file):
+		for charIdx, char in enumerate(line):
+			if(charIdx < 100 or charIdx > 102): # Way to exclude areas from background model, for ex. the real start codons 
+				totalCharCnt += 1
+				nucleotideCnt[nucDict[char]] += 1
+	for i in range(0, 4):
+		probArr[i] = nucleotideCnt[i] / totalCharCnt
+	file.close()
+	print '# Background model for A,G,C,T : ', probArr
+
 
 file = open(sequenceFile)
 freqArr = np.zeros( (4,pwmLength + offsetToPos) ) # Nucleotide freq. 0=A, 1=C, 2=G, 3=T ; columns are positions in strings
@@ -39,16 +56,15 @@ for lineCnt, line in enumerate(file):
 					freqArr[nucDict[char]][idx - (pwmStartPos - pwmLength + offsetToPos)] += 1 # map idx to range from 0 to n
 file.close()
 
-# ==== Calculate the PWM array with log2(freq/prob) =============
+# ==== Calculate the PWM array with log2(freq/prob) =====================================
 for rowIdx, row in enumerate(freqArr):
+	tmpProb = probArr[rowIdx]
 	for colIdx, cell in enumerate(row):
-		pwmArr[rowIdx][colIdx] = np.log2( (cell + r) / trainingLines_end / prob )
+		pwmArr[rowIdx][colIdx] = np.log2( (cell + r) / trainingLines_end / tmpProb )
 
-print '=== PWM Codon Finder ============='
-print pwmArr
-print '----------------------------------'
+#print '=== PWM Codon Finder =============', '\n' , pwmArr, '\n', '----------------------------------'
 
-# ==== search for possible tart codons based on pwm
+# ==== search for possible tart codons based on pwm =====================================
 file = open(sequenceFile)
 codonCandidateCnt = 0
 codonPwmCnt = 0
@@ -74,8 +90,9 @@ for lineCnt, line in enumerate(file):
 						codonPwmRealMatch += 1
 file.close()
 
-print 'Potential codons: ', codonCandidateCnt, '\n', 'CodonsIn_30PWM_area: ', codonPwmCnt, '\n', 'Match with codon: ', codonPwmRealMatch
-print 'Percentage of matched codons: ', float(codonPwmRealMatch) / (sum(1 for line in open(sequenceFile)) - testLines_start), ' @', scoreThreshold, 'scoreThreshold'
+print '# Potential codons: ', codonCandidateCnt, '\n', '# CodonsIn_30PWM_area: ', codonPwmCnt, '\n', '# Match with codon: ', codonPwmRealMatch
+print '# Percentage of matched codons: ', float(codonPwmRealMatch) / (sum(1 for line in open(sequenceFile)) - testLines_start), ' @', scoreThreshold, 'scoreThreshold'
+print '# Percentage of false codons from the found ones: ', 1 - codonPwmRealMatch / float(codonPwmCnt)
 
 
 
