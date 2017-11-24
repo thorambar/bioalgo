@@ -19,11 +19,13 @@ pwmStartPos = 100 	# not 101 since counting from 0
 probArr = [0.25, 0.25, 0.25, 0.25] # probability of A, C, G, T. Sum shall always be 1 (sum = 0, probability will be determined automatically)
 #probArr = [0, 0, 0, 0]
 seqLength = 200 	# total length of sequence including line break 
-trainingLines_end = 399 # end number (inclusive) of the training set 
+fileLineCnt = (sum(1 for line in open(sequenceFile)))
+print 'line count: ', fileLineCnt
+trainingLines_end = 399 # end number (inclusive) of the training set (set to fileLineCnt fir all lines)
 testLines_start = 400		# start number (inclusive) of the test set 
-offsetToPos = 0			# number of chars that get included to the right of the PWM window
-testOffset = 0			# number of chars that get included to the right of the PWM window in the test code. testOffset hast to be at least <= offsetToPos
-scoreThreshold = 0.001	# score (inclusive) with witch a candidate gets counted as a valid start codon 
+offsetToPos = 1			# number of chars that get included to the right of the PWM window
+testOffset = 1			# number of chars that get included to the right of the PWM window in the test code. testOffset hast to be at least <= offsetToPos
+scoreThreshold = 5	# score (inclusive) with witch a candidate gets counted as a valid start codon 
 r = 1	# pseudo-count for PWM 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -53,7 +55,7 @@ for lineCnt, line in enumerate(file):
 		for idx, char in enumerate(line):
 			if(idx >= pwmStartPos - pwmLength and idx < pwmStartPos + offsetToPos): # check for the pwmLenght chars before 100 (known codon)
 				if( nucDict[char] >= 0 ):
-					freqArr[nucDict[char]][idx - (pwmStartPos - pwmLength + offsetToPos)] += 1 # map idx to range from 0 to n
+					freqArr[nucDict[char]][idx - (pwmStartPos - pwmLength )] += 1 # map idx to range from 0 to n
 file.close()
 
 # ==== Calculate the PWM array with log2(freq/prob) =====================================
@@ -62,7 +64,7 @@ for rowIdx, row in enumerate(freqArr):
 	for colIdx, cell in enumerate(row):
 		pwmArr[rowIdx][colIdx] = np.log2( (cell + r) / trainingLines_end / tmpProb )
 
-#print '=== PWM Codon Finder =============', '\n' , pwmArr, '\n', '----------------------------------'
+print '=== PWM Codon Finder =============', '\n' , pwmArr, '\n', '----------------------------------'
 
 # ==== search for possible tart codons based on pwm =====================================
 file = open(sequenceFile)
@@ -93,6 +95,7 @@ file.close()
 print '# Potential codons: ', codonCandidateCnt, '\n', '# CodonsIn_30PWM_area: ', codonPwmCnt, '\n', '# Match with codon: ', codonPwmRealMatch
 print '# Percentage of matched codons: ', float(codonPwmRealMatch) / (sum(1 for line in open(sequenceFile)) - testLines_start), ' @', scoreThreshold, 'scoreThreshold'
 print '# Percentage of false codons from the found ones: ', 1 - codonPwmRealMatch / float(codonPwmCnt)
+print '# Percentage of false codons tristan: ', (float(codonPwmCnt) - codonPwmRealMatch) / (codonCandidateCnt - (sum(1 for line in open(sequenceFile)) - testLines_start))
 
 
 
