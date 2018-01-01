@@ -17,15 +17,15 @@ sequenceFile = "TIS-Ecoli.txt"
 pwmLength = 30 		# length of the region that is subject of the PWM
 pwmStartPos = 100 	# not 101 since counting from 0 
 probArr = [0.25, 0.25, 0.25, 0.25] # probability of A, C, G, T. Sum shall always be 1 (sum = 0, probability will be determined automatically)
-#probArr = [0, 0, 0, 0]
+probArr = [0, 0, 0, 0]
 seqLength = 200 	# total length of sequence including line break 
 fileLineCnt = (sum(1 for line in open(sequenceFile)))
 print 'line count: ', fileLineCnt
 trainingLines_end = 399 # end number (inclusive) of the training set (set to fileLineCnt fir all lines)
 testLines_start = 400		# start number (inclusive) of the test set 
 offsetToPos = 1			# number of chars that get included to the right of the PWM window
-testOffset = 1			# number of chars that get included to the right of the PWM window in the test code. testOffset hast to be at least <= offsetToPos
-scoreThreshold = 5	# score (inclusive) with witch a candidate gets counted as a valid start codon 
+testOffset = offsetToPos			# number of chars that get included to the right of the PWM window in the test code. testOffset hast to be at least <= offsetToPos
+scoreThreshold = 1.4	# score (inclusive) with witch a candidate gets counted as a valid start codon 
 r = 1	# pseudo-count for PWM 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -64,7 +64,7 @@ for rowIdx, row in enumerate(freqArr):
 	for colIdx, cell in enumerate(row):
 		pwmArr[rowIdx][colIdx] = np.log2( (cell + r) / trainingLines_end / tmpProb )
 
-print '=== PWM Codon Finder =============', '\n' , pwmArr, '\n', '----------------------------------'
+#print '=== PWM Codon Finder =============', '\n' , pwmArr, '\n', '----------------------------------'
 
 # ==== search for possible tart codons based on pwm =====================================
 file = open(sequenceFile)
@@ -96,6 +96,9 @@ print '# Potential codons: ', codonCandidateCnt, '\n', '# CodonsIn_30PWM_area: '
 print '# Percentage of matched codons: ', float(codonPwmRealMatch) / (sum(1 for line in open(sequenceFile)) - testLines_start), ' @', scoreThreshold, 'scoreThreshold'
 print '# Percentage of false codons from the found ones: ', 1 - codonPwmRealMatch / float(codonPwmCnt)
 print '# Percentage of false codons tristan: ', (float(codonPwmCnt) - codonPwmRealMatch) / (codonCandidateCnt - (sum(1 for line in open(sequenceFile)) - testLines_start))
+
+
+
 
 
 
