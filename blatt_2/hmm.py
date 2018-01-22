@@ -5,6 +5,9 @@ import sys
 
 # ==== constants ================================
 nucDict = {'A': 0, 'C': 1, 'G': 2, 'U': 3, '-': -1}
+MATCH = 0
+INSERT = 1
+DELETE = 2
 train_file_path = 'Daten/LSU_train.fasta'
 insert_threshold = 0.5
 pce = [1, 1, 1, 1]
@@ -31,31 +34,24 @@ for i in range(0, train_line_lenght):
 
 
 def get_emmition(start, stop):
-	if start == stop:
-		ret_arr = pce[:]
-		non_gap_cnt = 0
-		for i in range(0, 4):
-			ret_arr[i] = nucleotide_cnt[start][i]
-			non_gap_cnt += nucleotide_cnt[start][i]
-		for i in range(0,4):
-			ret_arr[i] = ret_arr[i] / non_gap_cnt
-		return ret_arr
-	else:
-		ret_arr = pce[:]
-		non_gap_cnt = 0
-		for i in range(start, stop+1):
-			for j in range(0, 4):
-				ret_arr[j] = nucleotide_cnt[i][j]
-				non_gap_cnt += nucleotide_cnt[i][j]
-		for i in range(0, 4):
-			ret_arr[i] = ret_arr[i] / non_gap_cnt
-		return ret_arr
+	ret_arr = pce[:]
+	non_gap_cnt = 0
+	for i in range(start, stop+1):
+		for j in range(0, 4):
+			ret_arr[j] += nucleotide_cnt[i][j]
+			non_gap_cnt += nucleotide_cnt[i][j]
+	for i in range(0, 4):
+		ret_arr[i] = ret_arr[i] / non_gap_cnt
+	return ret_arr
 
 
 
 
-def get_transition(start, stop):
-	return pct
+def get_transition(start, state):
+	ret_arr = pct[:]
+	if state == MATCH:
+
+	return ret_arr
 
 
 
@@ -68,19 +64,20 @@ def main():
 	insert_list.append((pce, pct)) # add initial insert state
 	for i in range(0, train_line_lenght):
 		if gap_count[i]/(train_line_cnt/2) < insert_threshold:
-			match_list.append( (get_emmition(i, i), get_transition(i, i) ) ) # pc is a placeholder for the transition probability
+			match_list.append( (get_emmition(i, i), get_transition(i, MATCH) ) ) # pc is a placeholder for the transition probability
 			insert_list.append((pce, pct)) 
-			delete_list.append( (0, get_transition(i, i)) )
+			delete_list.append( (0, get_transition(i, DELETE)) )
 		else:
 			#update insert
 			inser_start_pos = i
 			while i+1 < train_line_lenght and gap_count[i+1] > insert_threshold :
 				i += 1
 			insert_end_pos = i
-			insert_list[-1] = (get_emmition(inser_start_pos, insert_end_pos), get_transition(i, i))
+			insert_list[-1] = (get_emmition(inser_start_pos, insert_end_pos), get_transition(i, INSERT))
 
 
-	print match_list
+
+	
 
 
 
