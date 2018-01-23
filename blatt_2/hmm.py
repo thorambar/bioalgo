@@ -8,7 +8,9 @@ nucDict = {'A': 0, 'C': 1, 'G': 2, 'U': 3, '-': -1}
 MATCH = 0
 INSERT = 1
 DELETE = 2
-train_file_path = 'Daten/LSU_train.fasta'
+#train_file_path = 'Daten/LSU_train.fasta'
+train_file_path = 'Daten/my_test.fasta'
+test_file_path = 'Daten/LSU_short_test.fasta'
 insert_threshold = 0.5 # when there are more than x percent gaps, its an insert  
 pce = [1, 1, 1, 1] # A, C, G, T
 pct = [1, 1, 1]	# Match, Insert, Delete 
@@ -40,11 +42,12 @@ def gwc(pos):
 	else:
 		return True
 
+
 def get_emission(start, stop):
 	# computes the emission probability by counting all base occurrences in a column 
 	# for columns from start to stop point 
 	ret_arr = pce[:]
-	non_gap_cnt = 0
+	non_gap_cnt = sum(pce)
 	for i in range(start, stop+1):
 		for j in range(0, 4):
 			ret_arr[j] += nucleotide_cnt[i][j]
@@ -55,11 +58,11 @@ def get_emission(start, stop):
 
 
 
-
 def get_transition(start, state):
 	ret_arr = pct[:]
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	if state == MATCH:
+		#print 'Match'
 		for i in range(1, train_line_cnt, 2): 	# iterate over every other row 
 			while start+1 < train_line_lenght:
 				if start+1 < train_line_cnt and train_list[i][start+1] > 0 and not gwc(start+1):
@@ -77,10 +80,50 @@ def get_transition(start, state):
 				start += 1
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	elif state == INSERT:
-		return ret_arr
-			
+		#print 'Insert'
+		for i in range(1, train_line_cnt, 2):
+			while start+1 < train_line_lenght:
+				if not gwc(start+1): # when its a non gap state 
+					if train_list[i][start+1] > 0:
+						# its a match
+						ret_arr[0] += 1
+						break
+					else:
+						# its a delete 
+						ret_arr[2] += 1
+						break
+				elif gwc(start+1) and train_list[i][start+1] > 0:
+					# its a insert 
+					ret_arr[1] += 1 # no break, since inserts of multiple nucleotides are more common
+				start += 1
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	elif state == DELETE:
+		#print 'Delete'
+		for i in range(1, train_line_cnt, 2):
+			while start+1 < train_line_lenght:
+				if not gwc(start +1):
+					if train_list[i][start+1] < 0:
+						# its an delete
+						ret_arr[2] += 1
+						break
+					if train_list[i][start+1] > 0:
+						# its a match
+						ret_arr[0] += 1
+						break
+				elif gwc(start+1) and train_list[i][start+1] > 0:
+					# its an insert 
+					ret_arr[1] += 1
+					break
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	tmp_sum = sum(ret_arr) 
+	for i in range(0, 3):
+		ret_arr[i] = float(ret_arr[i]) / tmp_sum # normalize probability
+	#print ret_arr, sum(ret_arr)
 	return ret_arr
 
+
+def viterbi(str):
+	return 1
 
 
 # ++++ main +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -101,6 +144,23 @@ def main():
 				i += 1
 			insert_end_pos = i
 			insert_list[-1] = (get_emission(inser_start_pos, insert_end_pos), get_transition(i, INSERT))
+
+
+
+
+
+	for i, o in enumerate(match_list):
+		print 'M', i, ':', o[0], '=', sum(o[0]), o[1], '=', sum(o[1])
+
+
+	# use viterbi on test files
+	test_file = open(test_file_path)
+	test_list = test_file.readlines()
+	test_line_cnt = len(test_list)
+	for i in range(1, test_line_cnt, 2):
+		res = viterbi(test_list[i])
+
+
 
 
 
