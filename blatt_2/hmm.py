@@ -8,12 +8,15 @@ nucDict = {'A': 0, 'C': 1, 'G': 2, 'U': 3, '-': -1}
 MATCH = 0
 INSERT = 1
 DELETE = 2
-#train_file_path = 'Daten/LSU_train.fasta'
-train_file_path = 'Daten/my_test.fasta'
+train_file_path = 'Daten/LSU_train.fasta'
+#train_file_path = 'Daten/my_test.fasta'
 test_file_path = 'Daten/LSU_short_test.fasta'
 insert_threshold = 0.5 # when there are more than x percent gaps, its an insert  
 pce = [1, 1, 1, 1] # A, C, G, T
 pct = [1, 1, 1]	# Match, Insert, Delete 
+match_list = []
+insert_list = []
+delete_list = []
 
 # ==== open file and build a list of the lines =======
 train_file = open(train_file_path)
@@ -123,14 +126,42 @@ def get_transition(start, state):
 
 
 def viterbi(str):
-	return 1
+	current_state_idx = [0, 0, 0] # list containing the index of [Match, Insert, Delete] node in corresponding lists
+	current_state = 0 # type of state (0,1,2) in which we currently are
+	current_state_trans = (0,0,0)
+	path_str = ''
+	path_likelihood = 0.0
+	
+	# init with highest likelihood (only match, insert possible?) 
+	if ( match_list[0][0][nucDict[str[0]]] > insert_list[0][0][nucDict[str[0]]] ):
+		# if start is match
+		path_likelihood = match_list[0][0][nucDict[str[0]]]
+		current_state_idx[1] += 1
+		current_state_idx[0] += 1 
+		current_state_idx[2] += 1 
+		current_state = 0
+		current_state_trans = match_list[0][1][:]
+		path_str + 'M0->'
+	else:
+		# if start is insert
+		path_likelihood = insert_list[0][0][nucDict[str[0]]]
+		current_state_idx[1] += 1
+		current_state_idx[0] += 1 
+		current_state_idx[2] += 1 
+		current_state = 1
+		current_state_trans = insert_list[0][1][:]
+		path_str + 'I0->'
+	# now, all states should be possible
+	for i in range(1, len(str)+1):
+		# decide which next state transition with the next emission is is most likely
+		state_likelyhood_set = [ match_list[current_state_idx[0]+1][0][nucDict[str[i]]] * current_state_trans[0], insert_list[current_state_idx[1]+1][0][nucDict[str[i]]] * current_state_trans[1], del_list[current_state_idx[2]+1][0][nucDict[str[i]]] * current_state_trans[2]   ]
+		if ( current_state == 1 and insert_list[1][0][] )
+
+
 
 
 # ++++ main +++++++++++++++++++++++++++++++++++++++++++++++++++
 def main():
-	match_list = []
-	insert_list = []
-	delete_list = []
 
 	insert_list.append((pce, pct)) 												# add initial insert state
 	for i in range(0, train_line_lenght): 										# iterate over chars in one line
@@ -149,8 +180,8 @@ def main():
 
 
 
-	for i, o in enumerate(match_list):
-		print 'M', i, ':', o[0], '=', sum(o[0]), o[1], '=', sum(o[1])
+	#for i, o in enumerate(match_list):
+		#print 'M', i, ':', o[0], '=', sum(o[0]), o[1], '=', sum(o[1])
 
 
 	# use viterbi on test files
@@ -159,6 +190,7 @@ def main():
 	test_line_cnt = len(test_list)
 	for i in range(1, test_line_cnt, 2):
 		res = viterbi(test_list[i])
+		print res
 
 
 
