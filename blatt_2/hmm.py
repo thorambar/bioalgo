@@ -40,7 +40,7 @@ for i in range(0, train_line_lenght):
 
 def gwc(pos):
 	# get weighted gap count 
-	if gap_count[pos] / (train_line_cnt/2) < insert_threshold:
+	if gap_count[pos] / (float(train_line_cnt)/2) < insert_threshold:
 		return False
 	else:
 		return True
@@ -63,99 +63,175 @@ def get_emission(start, stop):
 
 def get_transition(start, state):
 	ret_arr = pct[:]
+
+	print 'trans ----------'
+
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	if state == MATCH:
-		#print 'Match'
+		print 'Match'
 		for i in range(1, train_line_cnt, 2): 	# iterate over every other row 
+			print 'i: ', i
 			while start+1 < train_line_lenght:
+				print 'start: ', start
 				if start+1 < train_line_cnt and train_list[i][start+1] > 0 and not gwc(start+1):
 					# its a match
 					ret_arr[0] += 1
+					#print 'Match', start
 					break	
 				elif start+1 < train_line_cnt and not gwc(start+1) and train_list[i][start+1] < 0:
 					# its a delete
 					ret_arr[2] += 1
+					#print 'delete', start
 					break
 				elif start+1 < train_line_cnt and gwc(start+1) and train_list[i][start+1] > 0:
 					# its a insert	
 					ret_arr[1] += 1
+					#print 'insert', start
 					break
 				start += 1
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	elif state == INSERT:
-		#print 'Insert'
+		print 'Insert'
 		for i in range(1, train_line_cnt, 2):
 			while start+1 < train_line_lenght:
 				if not gwc(start+1): # when its a non gap state 
 					if train_list[i][start+1] > 0:
 						# its a match
 						ret_arr[0] += 1
+						#print 'Match', start
 						break
 					else:
 						# its a delete 
 						ret_arr[2] += 1
+						#print 'delete', start
 						break
 				elif gwc(start+1) and train_list[i][start+1] > 0:
 					# its a insert 
+					#print 'insert', start
 					ret_arr[1] += 1 # no break, since inserts of multiple nucleotides are more common
 				start += 1
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	elif state == DELETE:
-		#print 'Delete'
+		print 'Delete'
 		for i in range(1, train_line_cnt, 2):
 			while start+1 < train_line_lenght:
 				if not gwc(start +1):
 					if train_list[i][start+1] < 0:
 						# its an delete
 						ret_arr[2] += 1
+						#print 'delete', start
 						break
 					if train_list[i][start+1] > 0:
 						# its a match
 						ret_arr[0] += 1
+						#print 'Match', start
 						break
 				elif gwc(start+1) and train_list[i][start+1] > 0:
 					# its an insert 
 					ret_arr[1] += 1
+					#print 'Match', start
 					break
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	tmp_sum = sum(ret_arr) 
+	print ret_arr
 	for i in range(0, 3):
 		ret_arr[i] = float(ret_arr[i]) / tmp_sum # normalize probability
 	#print ret_arr, sum(ret_arr)
 	return ret_arr
 
 
-def viterbi(str):
+def viterbi(string):
 	current_state_idx = [0, 0, 0] # list containing the index of [Match, Insert, Delete] node in corresponding lists
 	current_state = 0 # type of state (0,1,2) in which we currently are
 	current_state_trans = (0,0,0)
-	path_str = ''
+	path_string = ''
 	path_likelihood = 0.0
 	
 	# init with highest likelihood (only match, insert possible?) 
-	if ( match_list[0][0][nucDict[str[0]]] > insert_list[0][0][nucDict[str[0]]] ):
+	if ( match_list[0][0][nucDict[string[0]]] > insert_list[0][0][nucDict[string[0]]] ):
 		# if start is match
-		path_likelihood = match_list[0][0][nucDict[str[0]]]
+		path_likelihood = match_list[0][0][nucDict[string[0]]]
 		current_state_idx[1] += 1
 		current_state_idx[0] += 1 
 		current_state_idx[2] += 1 
-		current_state = 0
+		current_state = MATCH
 		current_state_trans = match_list[0][1][:]
-		path_str + 'M0->'
+		path_string += 'M0->'
 	else:
 		# if start is insert
-		path_likelihood = insert_list[0][0][nucDict[str[0]]]
+		path_likelihood = insert_list[0][0][nucDict[string[0]]]
 		current_state_idx[1] += 1
 		current_state_idx[0] += 1 
 		current_state_idx[2] += 1 
-		current_state = 1
+		current_state = INSERT
 		current_state_trans = insert_list[0][1][:]
-		path_str + 'I0->'
+		path_string += 'I0->'
 	# now, all states should be possible
-	for i in range(1, len(str)+1):
+	for i in range(1, len(string)-1): # skips the \n at the end
 		# decide which next state transition with the next emission is is most likely
-		state_likelyhood_set = [ match_list[current_state_idx[0]+1][0][nucDict[str[i]]] * current_state_trans[0], insert_list[current_state_idx[1]+1][0][nucDict[str[i]]] * current_state_trans[1], del_list[current_state_idx[2]+1][0][nucDict[str[i]]] * current_state_trans[2]   ]
-		if ( current_state == 1 and insert_list[1][0][] )
+		# TODO  ERRORS while looking ahead to far
+		state_likelyhood_set = [ match_list[current_state_idx[0]+1][0][nucDict[string[i]]] * current_state_trans[0], insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1], current_state_trans[2] ]
+		if current_state == INSERT:
+			if ( insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1] == max(state_likelyhood_set) ):
+				# we stay in the insert state we are in currently
+				pass
+			elif ( insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1] == max(state_likelyhood_set) ):
+				# we transition into an match state
+				current_state = MATCH
+				current_state_idx[0] += 1
+				current_state_trans = match_list[current_state_idx[0]][1][:]
+				path_string += 'M' + str(i) + '->'
+			else:
+				# we transition into an delete state
+				current_state = DELETE
+				current_state_idx[2] += 1
+				current_state_trans = delete_list[current_state_idx[2]][1][:]
+				path_string += 'D' + str(i) + '->'
+				i -= 1
+		elif current_state == MATCH:
+			if ( insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1] == max(state_likelyhood_set) ):
+				# we transition into an insert state
+				current_state_ = INSERT
+				current_state_idx[1] += 1
+				current_state_trans = insert_list[current_state_idx[1]][1][:]
+				path_string += 'I' + str(i) + '->'
+			elif ( insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1] == max(state_likelyhood_set) ):
+				# we transition into an match state
+				current_state = MATCH
+				current_state_idx[0] += 1
+				current_state_trans = match_list[current_state_idx[0]][1][:]
+				path_string += 'M' + str(i) + '->'
+			else:
+				# we transition into an delete state
+				current_state = DELETE
+				current_state_idx[2] += 1
+				current_state_trans = delete_list[current_state_idx[2]][1][:]
+				path_string += 'D' + str(i) + '->'
+				i -= 1
+		elif current_state == DELETE:
+			if ( insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1] == max(state_likelyhood_set) ):
+				# we transition into an insert state
+				current_state_ = INSERT
+				current_state_idx[1] += 1
+				current_state_trans = insert_list[current_state_idx[1]][1][:]
+				path_string += 'I' + str(i) + '->'
+			elif ( insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1] == max(state_likelyhood_set) ):
+				# we transition into an match state
+				current_state = MATCH
+				current_state_idx[0] += 1
+				current_state_trans = match_list[current_state_idx[0]][1][:]
+				path_string += 'M' + str(i) + '->'
+			else:
+				# we transition into an delete state
+				current_state = DELETE
+				current_state_idx[2] += 1
+				current_state_trans = delete_list[current_state_idx[2]][1][:]
+				path_string += 'D' + str(i) + '->'
+				i -= 1
+
+
+					
+	#print path_string
 
 
 
@@ -194,15 +270,6 @@ def main():
 
 
 
-
-
-	
-
-
-
-
-				  
-				
 
 
 
