@@ -39,7 +39,7 @@ for i in range(0, train_line_lenght):
 
 
 def gwc(pos):
-	# get weighted gap count 
+	# get weighted gap count (returns true if the column is a gap)
 	if gap_count[pos] / (float(train_line_cnt)/2) < insert_threshold:
 		return False
 	else:
@@ -64,34 +64,34 @@ def get_emission(start, stop):
 def get_transition(start, state):
 	ret_arr = pct[:]
 
-	print 'trans ----------'
+	#print 'trans ----------'
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	if state == MATCH:
-		print 'Match'
+		#print 'Match'
 		for i in range(1, train_line_cnt, 2): 	# iterate over every other row 
-			print 'i: ', i
+			#print '------------------------- i: ', i
 			while start+1 < train_line_lenght:
-				print 'start: ', start
+				#print 'start: ', start
 				if start+1 < train_line_cnt and train_list[i][start+1] > 0 and not gwc(start+1):
 					# its a match
 					ret_arr[0] += 1
-					#print 'Match', start
+					#print 'Match'
 					break	
 				elif start+1 < train_line_cnt and not gwc(start+1) and train_list[i][start+1] < 0:
 					# its a delete
 					ret_arr[2] += 1
-					#print 'delete', start
+					#print 'delete'
 					break
 				elif start+1 < train_line_cnt and gwc(start+1) and train_list[i][start+1] > 0:
 					# its a insert	
 					ret_arr[1] += 1
-					#print 'insert', start
+					#print 'insert'
 					break
 				start += 1
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	elif state == INSERT:
-		print 'Insert'
+		#print 'Insert'
 		for i in range(1, train_line_cnt, 2):
 			while start+1 < train_line_lenght:
 				if not gwc(start+1): # when its a non gap state 
@@ -112,7 +112,7 @@ def get_transition(start, state):
 				start += 1
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	elif state == DELETE:
-		print 'Delete'
+		#print 'Delete'
 		for i in range(1, train_line_cnt, 2):
 			while start+1 < train_line_lenght:
 				if not gwc(start +1):
@@ -133,7 +133,7 @@ def get_transition(start, state):
 					break
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	tmp_sum = sum(ret_arr) 
-	print ret_arr
+	#print ret_arr
 	for i in range(0, 3):
 		ret_arr[i] = float(ret_arr[i]) / tmp_sum # normalize probability
 	#print ret_arr, sum(ret_arr)
@@ -169,7 +169,7 @@ def viterbi(string):
 	# now, all states should be possible
 	for i in range(1, len(string)-1): # skips the \n at the end
 		# decide which next state transition with the next emission is is most likely
-		# TODO  ERRORS while looking ahead to far
+		# TODO  ERRORS while looking ahead to far (easy fix)
 		state_likelyhood_set = [ match_list[current_state_idx[0]+1][0][nucDict[string[i]]] * current_state_trans[0], insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1], current_state_trans[2] ]
 		if current_state == INSERT:
 			if ( insert_list[current_state_idx[1]+1][0][nucDict[string[i]]] * current_state_trans[1] == max(state_likelyhood_set) ):
@@ -238,9 +238,8 @@ def viterbi(string):
 
 # ++++ main +++++++++++++++++++++++++++++++++++++++++++++++++++
 def main():
-
 	insert_list.append((pce, pct)) 												# add initial insert state
-	for i in range(0, train_line_lenght): 										# iterate over chars in one line
+	for i in range(0, train_line_lenght): 										# iterate over chars in one column
 		if gap_count[i]/(train_line_cnt/2) < insert_threshold:
 			match_list.append( (get_emission(i, i), get_transition(i, MATCH) ) ) 
 			insert_list.append((pce, pct)) 
