@@ -8,9 +8,8 @@ nucDict = {'A': 0, 'C': 1, 'G': 2, 'U': 3, '-': -1}
 MATCH = 0
 INSERT = 1
 DELETE = 2
-train_file_path = 'Daten/LSU_train.fasta'
-#train_file_path = 'Daten/my_test.fasta'
-test_file_path = 'Daten/LSU_short_test.fasta'
+train_file_path = 'Daten/LSU_train.fasta' # Path to training file
+test_file_path = 'Daten/LSU_short_test.fasta' # path to file where the viterbi looks for RNA 
 insert_threshold = 0.5 # when there are more than x percent gaps, its an insert  
 pce = [1, 1, 1, 1] # A, C, G, T
 pct = [1, 1, 1]	# Match, Insert, Delete 
@@ -68,15 +67,11 @@ def get_transition(start, state):
 
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	if state == MATCH:
-		#print 'Match'
 		for i in range(1, train_line_cnt, 2): 	# iterate over every other row 
-			#print '------------------------- i: ', i
 			while start+1 < train_line_lenght:
-				#print 'start: ', start
 				if start+1 < train_line_cnt and train_list[i][start+1] > 0 and not gwc(start+1):
 					# its a match
 					ret_arr[0] += 1
-					#print 'Match'
 					break	
 				elif start+1 < train_line_cnt and not gwc(start+1) and train_list[i][start+1] < 0:
 					# its a delete
@@ -91,52 +86,42 @@ def get_transition(start, state):
 				start += 1
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	elif state == INSERT:
-		#print 'Insert'
 		for i in range(1, train_line_cnt, 2):
 			while start+1 < train_line_lenght:
 				if not gwc(start+1): # when its a non gap state 
 					if train_list[i][start+1] > 0:
 						# its a match
 						ret_arr[0] += 1
-						#print 'Match', start
 						break
 					else:
 						# its a delete 
 						ret_arr[2] += 1
-						#print 'delete', start
 						break
 				elif gwc(start+1) and train_list[i][start+1] > 0:
 					# its a insert 
-					#print 'insert', start
 					ret_arr[1] += 1 # no break, since inserts of multiple nucleotides are more common
 				start += 1
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	elif state == DELETE:
-		#print 'Delete'
 		for i in range(1, train_line_cnt, 2):
 			while start+1 < train_line_lenght:
 				if not gwc(start +1):
 					if train_list[i][start+1] < 0:
 						# its an delete
 						ret_arr[2] += 1
-						#print 'delete', start
 						break
 					if train_list[i][start+1] > 0:
 						# its a match
 						ret_arr[0] += 1
-						#print 'Match', start
 						break
 				elif gwc(start+1) and train_list[i][start+1] > 0:
 					# its an insert 
 					ret_arr[1] += 1
-					#print 'Match', start
 					break
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	tmp_sum = sum(ret_arr) 
-	#print ret_arr
 	for i in range(0, 3):
 		ret_arr[i] = float(ret_arr[i]) / tmp_sum # normalize probability
-	#print ret_arr, sum(ret_arr)
 	return ret_arr
 
 
@@ -231,7 +216,6 @@ def viterbi(string):
 
 
 					
-	#print path_string
 
 
 
