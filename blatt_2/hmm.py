@@ -5,14 +5,15 @@ import sys
 
 # ==== constants ================================
 nucDict = {'A': 0, 'C': 1, 'G': 2, 'U': 3, '-': -1}
+# Used as FINAL vars
 MATCH = 0
 INSERT = 1
 DELETE = 2
 train_file_path = 'Daten/LSU_train.fasta' # Path to training file
 test_file_path = 'Daten/LSU_short_test.fasta' # path to file where the viterbi looks for RNA 
 insert_threshold = 0.5 # when there are more than x percent gaps, its an insert  
-pce = [1, 1, 1, 1] # A, C, G, T
-pct = [1, 1, 1]	# Match, Insert, Delete 
+pce = [1, 1, 1, 1] # A, C, G, T  Pseudo count emissions 
+pct = [1, 1, 1]	# Match, Insert, Delete Pseudo count emissions 
 match_list = []
 insert_list = []
 delete_list = []
