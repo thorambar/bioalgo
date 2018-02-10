@@ -1,0 +1,28 @@
+Liebe TeilnehmerInnen der Vorlesung,
+
+wie angekündigt, besteht die Programmieraufgabe darin, den Algorithmus aus der Vorlesung für das paarweise globale bzw. lokale Sequenzalignment zu implementieren.
+
+Sie können den Algorithmus in jeder beliebigen Programmiersprache implementieren.
+
+Wenn man das Programm startet, sollte man zunächst wählen können, ob man ein globales oder ein lokales Alignment haben will.
+
+Die beiden Eingabesequenzen sollten in einer Datei sein, möglichst im so genannten "FASTA-Format":
+https://de.wikipedia.org/wiki/FASTA-Format
+Für jede Sequenz steht in einer ersten Zeile der Name der Sequenz und ggf. zusätzliche Information, diese Zeile muss mit ">" anfangen. Die Sequenz selber kommt danach und kann aus beliebig vielen Zeilen bestehen, bis dann wieder eine Zeile kommt, die mit mit ">" anfängt.  
+
+Die Ausgabe ist das optimale Alignment (beliebiges Format). Zusätzlich sollte das Programm den Score des optimalen Alignments ausgeben.  
+
+In der Sequenz sollten nur die 20 Symbole für die Aminosäuren vorkommen, also die 20 Buchstaben aus dem "single letter code": http://www.biochem.ucl.ac.uk/bsm/dbbrowser/c32/aacode.html
+Falls ein anderes Zeichen vorkommt, sollte das Programm eine Fehlermeldung ausgeben.
+Die Substitutionsmatrix "BLOSUM62" habe ich auf StudIP hoch geladen, in einer Form, die man einfach parsen kann.
+ 
+Verwenden Sie bitte eine lineare Gap Penalty. Der Wert der Gap-Penalty g sollte dem Programm übergeben werden.
+ 
+Sie können hier zum Vergleich paarweise globale Protein-Alignments online berechnen:
+.  http://www.ebi.ac.uk/Tools/psa/emboss_needle/
+  Wenn Sie Ihre eigenen Ergebnisse damit vergleichen wollen, sollten Sie auf "More options" gehen und bei "gap open" und "gap extend" jeweils den Wert g eingeben, den Sie verwendet haben, ebenso bei "end gap open" und "end gap extend". Ich habe ein paar einfache Beispiele getestet, und es hat funktioniert. Es gibt dort auch den lokalen Algorithmus online ("Water" für "Smith-Waterman"), den habe ich aber noch nicht getestet.
+
+ 
+Viel Erfolg!
+
+  Burkhard Morgenstern
