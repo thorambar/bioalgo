@@ -8,23 +8,28 @@ import sys
 # ==== consts and init values ================================
 gl_lo_flag = True # true == local, false == global 
 gap_penalty = 0.5 # linear gap penalty 
-seq_f1_fileName = 'data/TPA_HUMAN'
-seq_f2_fileName = 'data/TPA_PIG'
+seq_f1_fileName = 'data/TPA_HUMAN.fasta'
+seq_f2_fileName = 'data/TPA_PIG.fasta'
 sub_fileName = 'data/BLOSUM62'
 
+def read_fasta_protein_toString(path):
+	file = open(path)
+	seq = ''
+	for line in file:
+		line = line.strip()
+		if line.startswith('>'):
+			pass
+		else:
+			seq += line
+	return seq
 
-# build dictionary based on tuples of the two substituted acids [G, X] => -2 for ex
-sub_file = open(sub_fileName)
-sub_list = sub_file.readlines()
-sub_list = [x.strip() for x in sub_list]
-sub_dict = {}
-for str in sub_list:
-	sub_dict.update({(str[0], str[4]):int(str[7]+str[8])})
-print sub_dict[('S', 'W')]
-
-
-
-
+def get_sub_idx(str1, str2):
+	try:
+		retVal = sub_dict[str1, str2]
+	except KeyError:
+		print 'Error: non single letter code char found'
+		exit(0)
+	return retVal
 
 def aligne_local():
 	return 0
@@ -33,7 +38,6 @@ def aligne_local():
 def aligne_global():
 	return 0
 	# TODO 
-
 
 def init():
 	tmp = raw_input('Press [1] for local alignment or [2] for global alignment: ')
@@ -56,11 +60,24 @@ def init():
 	return (flag, gpen)
 
 
+# build dictionary based on tuples of the two substituted acids [G, X] => -2 for ex
+sub_file = open(sub_fileName)
+sub_list = sub_file.readlines()
+sub_list = [x.strip() for x in sub_list]
+sub_dict = {}
+for str in sub_list:
+	sub_dict.update({(str[0], str[4]):int(str[7]+str[8])})
+
+# open the to faster files and get the protein sequences as strings
+seq_f1 = read_fasta_protein_toString(seq_f1_fileName)
+seq_f2 = read_fasta_protein_toString(seq_f2_fileName)
+
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 def main():
 	#gl_lo_flag, gap_penalty = init()
-	print ''
+	exit(0)
+	
 
 
 
