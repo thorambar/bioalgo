@@ -52,9 +52,9 @@ def align_local(seq_a, seq_b):
 				highest_score = tmp_score
 				highest_score_idx = [i, j]
 	# traceback to find best alignment
-	print highest_score, highest_score_idx
 	i = highest_score_idx[0]
 	j = highest_score_idx[1]
+	score = dp_mat[i][j]
 	while dp_mat[i][j] != 0:
 		char_a = seq_a[i-1]
 		char_b = seq_b[j-1]
@@ -63,20 +63,17 @@ def align_local(seq_a, seq_b):
 			# diag is best
 			alignment[0] += seq_a[i-1]
 			alignment[1] += seq_b[j-1]
-			score += (dp_mat[i-1][j-1])
 			i -= 1
 			j -= 1
 		elif dp_mat[i-1][j] == max(tmp_list):
 			# gap in sequence b
 			alignment[0] += seq_a[i-1]
 			alignment[1] += '-'
-			score += (dp_mat[i-1][j])
 			i -= 1
 		else:
 			# gap in sequence a
 			alignment[0] += '-'
 			alignment[1] += seq_b[j-1]
-			score += (dp_mat[i][j-1])
 			j -= 1
 	return (score, [alignment[0][::-1], alignment[1][::-1]]) 
 
@@ -101,6 +98,7 @@ def align_global(seq_a, seq_b):
 	# traceback to find best alignment
 	i = len_a
 	j = len_b
+	score = dp_mat[i][j]
 	while i > 0 or j > 0:
 		char_a = seq_a[i-1]
 		char_b = seq_b[j-1]
@@ -108,20 +106,17 @@ def align_global(seq_a, seq_b):
 			# substitution 
 			alignment[0] += seq_a[i-1]
 			alignment[1] += seq_b[j-1]
-			score += (dp_mat[i-1][j-1] + get_sub_cost(char_a, char_b))
 			i -= 1
 			j -= 1
 		elif i > 0 and dp_mat[i][j] == (dp_mat[i-1][j] - gap_penalty):
 			# gap in sequence b
 			alignment[0] += seq_a[i-1]
 			alignment[1] += '-'
-			score += (dp_mat[i-1][j] - gap_penalty)
 			i -= 1
 		else:
 			# gap in sequence a
 			alignment[0] += '-'
 			alignment[1] += seq_b[j-1]
-			score += (dp_mat[i][j-1] - gap_penalty)
 			j -= 1
 	return (score, [alignment[0][::-1], alignment[1][::-1]]) 
 
@@ -156,15 +151,9 @@ def print_alignment(alg, step_size):
 		for j in range(0, step_size):
 			if i+j < len_a:
 				str_a += alg[0][i+j]
-			else:
-				#str_b += '-'
-				pass
 		for j in range(0, step_size):
 			if i+j < len_b:
 				str_b += alg[1][i+j]
-			else:
-				#str_b += '-'
-				pass
 		print str_a
 		print str_b
 		print ' '
@@ -192,17 +181,15 @@ def main():
 	seq_f2 = read_fasta_protein_toString(seq_f2_fileName)
 	
 	gl_lo_flag, gap_penalty = init()
-	#gl_lo_flag = False
 
 	if gl_lo_flag == False:
 		score, alignment = align_global(seq_f1, seq_f2)
 		print 'Score: ', score
-		print_alignment(alignment, 60)
-		#print alignment[0][::-1]
+		print_alignment(alignment, 50)
 	else:
 		score, alignment = align_local(seq_f1, seq_f2)
 		print 'Score: ', score
-		print_alignment(alignment, 60)
+		print_alignment(alignment, 50)
 	exit(0)
 	
 
