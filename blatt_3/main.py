@@ -24,6 +24,7 @@ def read_fasta_protein_toString(path):
 	return seq
 
 def get_sub_cost(str1, str2):
+	retVal = 0
 	try:
 		retVal = sub_dict[str1, str2]
 	except KeyError:
@@ -31,8 +32,9 @@ def get_sub_cost(str1, str2):
 		exit(0)
 	return retVal
 
-def align_local(seq_a, seq_b):
+def align_local(seq_a, seq_b, gp):
 	print 'Local mode ----'
+	gap_penalty = gp
 	score = 0 
 	alignment = ['', '']
 	highest_score_idx = [0, 0]
@@ -46,8 +48,16 @@ def align_local(seq_a, seq_b):
 		for j in range(1, len_b+1):
 			char_a = seq_a[i-1]
 			char_b = seq_b[j-1]
-			tmp_score = max( (dp_mat[i-1][j-1] + get_sub_cost(char_a, char_b)), (dp_mat[i-1][j] - gap_penalty), (dp_mat[i][j-1] - gap_penalty), 0 )
-			dp_mat[i][j] = tmp_score
+			tmp_set = [(dp_mat[i-1][j-1] + get_sub_cost(char_a, char_b)), (dp_mat[i-1][j] - gap_penalty), (dp_mat[i][j-1] - gap_penalty)]
+			if( (tmp_set[0] > tmp_set[1]) and (tmp_set[0] > tmp_set[2]) ):
+				dp_mat[i][j] = tmp_set[0]
+				tmp_score = tmp_set[0]
+			elif( tmp_set[1] > tmp_set[2] ):
+				dp_mat[i][j] = tmp_set[1]
+				tmp_score = tmp_set[1]
+			else:
+				dp_mat[i][j] = tmp_set[2]
+				tmp_score = tmp_set[2]
 			if tmp_score > highest_score:
 				highest_score = tmp_score
 				highest_score_idx = [i, j]
@@ -77,8 +87,9 @@ def align_local(seq_a, seq_b):
 			j -= 1
 	return (score, [alignment[0][::-1], alignment[1][::-1]]) 
 
-def align_global(seq_a, seq_b):
+def align_global(seq_a, seq_b, gp):
 	print 'Global mode ----'
+	gap_penalty = gp
 	score = 0;
 	alignment = ['', '']
 	len_a = len(seq_a)
@@ -132,12 +143,12 @@ def init():
 	if(int_flag ==  2):
 		flag = False
 	
-	tmp = raw_input('pleas enter gap penalty: ')
+	tmp = raw_input('Please enter gap penalty: ')
 	try: 
 		gpen = float(tmp)
 	except ValueError:
 		print 'Wrong input'
-		exit(0)
+		exit(1)
 
 	return (flag, gpen)
 
@@ -183,11 +194,11 @@ def main():
 	gl_lo_flag, gap_penalty = init()
 
 	if gl_lo_flag == False:
-		score, alignment = align_global(seq_f1, seq_f2)
+		score, alignment = align_global(seq_f1, seq_f2, gap_penalty)
 		print 'Score: ', score
 		print_alignment(alignment, 50)
 	else:
-		score, alignment = align_local(seq_f1, seq_f2)
+		score, alignment = align_local(seq_f1, seq_f2, gap_penalty)
 		print 'Score: ', score
 		print_alignment(alignment, 50)
 	exit(0)
